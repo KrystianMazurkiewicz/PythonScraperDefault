@@ -119,6 +119,7 @@ try:
     while True:
         scrape()
         # time.sleep(600)  # 10 minutter
-        time.sleep(60)  # 1 minutter
+        # time.sleep(60)  # 1 minutter
+        time.sleep(180)  # 3 minutter
 except KeyboardInterrupt:
     print("Avslutter programmet")
