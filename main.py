@@ -99,7 +99,12 @@ def scrape():
         new_articles = []
 
         for article in articles:
-            article_url = article.find("a", itemprop="url").get("href").split("?")[0]
+            a_tag = article.find("a", itemprop="url")
+            if a_tag is None:
+                print("No link found for article")
+                continue
+
+            article_url = a_tag.get("href")
 
             if article_url not in checked_urls:
                 article_info = get_article_info(article)
