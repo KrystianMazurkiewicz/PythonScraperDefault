@@ -37,7 +37,7 @@ def get_article_info(article):
     published = get_article_published_date(article_soup)
     lead_text = get_article_lead_text(article_soup)
 
-    lead_text = "Slått av. Slå på for å se"
+    # lead_text = "Slått av. Slå på for å se"
 
     return published, title, lead_text, authors
 
@@ -84,10 +84,27 @@ def get_article_published_date(article_soup):
 
 def get_article_lead_text(article_soup):
     lead_text_tag = article_soup.find(attrs={"data-test-tag": "lead-text"})
+
     if lead_text_tag:
         return lead_text_tag.get_text(strip=True)
 
     return None
+
+
+def process_article(article):
+    a_tag = article.find("a", itemprop="url")
+    if not a_tag:
+        print("No link found for article")
+        return
+
+    article_url = a_tag.get("href")
+    if article_url in checked_urls:
+        return
+
+    article_info = get_article_info(article)
+    if article_info:
+        checked_urls.add(article_url)
+        return article_info
 
 
 def scrape():
@@ -95,30 +112,20 @@ def scrape():
 
     soup = get_soup(URL)
     if not soup:
-        return None
+        return
 
     articles = soup.find_all("article")
-    new_articles = set()
 
-    for article in articles[:3]:
-        a_tag = article.find("a", itemprop="url")
-        if a_tag is None:
-            print("No link found for article")
-            continue
+    # Using a generator to process articles
+    processed_articles = (process_article(article) for article in articles[:17])
 
-        article_url = a_tag.get("href")
-
-        if article_url not in checked_urls:
-            article_info = get_article_info(article)
-            if article_info:
-                new_articles.add(article_info)
-                checked_urls.add(article_url)
+    # Filtering out None or falsy values and constructing a set
+    new_articles = {info for info in processed_articles if info}
 
     if new_articles:
         table = PrettyTable(["Publisert", "Tittel", "Sammendrag", "Forfatter(e)"])
         for published, title, summary, authors in new_articles:
             table.add_row([published, title, summary, authors])
-
         print(table)
 
 
